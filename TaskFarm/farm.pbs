@@ -12,10 +12,18 @@ module load vasp5
 export OMP_NUM_THREADS=1
 ulimit -s unlimited
 
+### NOTE 
+# You need to alter the number of jobs you want to run in parallel uing the JOBS variable
+
 JOBS=9
 export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
 NPROC2=$( echo "$NPROC/$JOBS" | bc ) #
 
 cd $PBS_O_WORKDIR
 
-echo disp-* | xargs -P 9 -n 1 bash vasp.bash $NPROC2
+### NOTE
+# In this particular example each job runs in a directory disp-$$$ 
+# The echo command before xargs gives a list of these directories to the command and it iterates over them.
+# The commands are fed into the script vasp.bash for execution.
+
+echo disp-* | xargs -P $JOBS -n 1 bash vasp.bash $NPROC2
