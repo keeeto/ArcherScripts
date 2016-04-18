@@ -1,0 +1,24 @@
+#!/bin/bash --login
+
+#PBS -N Zn3Sn2O7-NPT
+#PBS -l select=12
+#PBS -l walltime=2:00:00
+#PBS -A pr1u1109
+
+#Note: select = No. Nodes (e.g. 12 = 12*24 = 288 cores)
+
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+
+export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
+
+cd $PBS_O_WORKDIR
+ls
+pwd
+#cp INCAR.Vol INCAR
+#aprun -n $NPROC /home/pr1u1109/shared/bin/vasp5.gamma > vasp.out
+#cp CONTCAR CONTCAR.Vol
+#cp OUTCAR OUTCAR.Vol
+cp CONTCAR POSCAR
+#cp INCAR.Tot INCAR
+aprun -n $NPROC /home/pr1u1109/shared/bin/vasp5.gamma > vasp.out

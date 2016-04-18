@@ -1,0 +1,21 @@
+#!/bin/bash --login
+
+#PBS -N BiVO4-H
+#PBS -l select=72
+#PBS -l walltime=1:00:00
+#PBS -A e05-gener-wal
+
+#Note: select = No. Nodes (e.g. 12 = 12*24 = 288 cores)
+
+module load vasp5
+
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+
+JOBS=10
+export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
+NPROC2=$( echo "$NPROC/$JOBS" | bc ) #
+
+cd $PBS_O_WORKDIR
+
+echo disp-* | xargs -P 9 -n 1 bash vasp.bash $NPROC2

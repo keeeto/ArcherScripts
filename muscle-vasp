@@ -1,0 +1,17 @@
+#!/bin/bash --login
+#PBS -N msucle-CuI
+#PBS -l select=12:mpiprocs=12:bigmem=false
+# UNDERPOPULATE by using select=12:mpiprocs=12:bigmem=true.
+# they hate this because the computer is not being told what to do, but rather doing what it likes.  Its good.
+#PBS -l walltime=06:00:00
+#PBS -A e05-gener-wal
+#Note: select = number of nodes, there are 12 proc per node.
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
+export NPROC2=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3/2}'`
+cd $PBS_O_WORKDIR
+ aprun -n $NPROC -N 24 /home/e05/shared/red/vasp5.gamma > vasp.out 
+# aprun -n $NPROC -N 24 /home/e461/e461/hendon/work/bin/vasp_gam > output
+# aprun -n $NPROC -N 24 /home/e461/e461/hendon/work/bin/vasp_ncl > output
+# aprun -n $NPROC -N 24 /home/e461/e461/hendon/work/bin/vasp_vtst > output

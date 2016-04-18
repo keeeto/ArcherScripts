@@ -1,0 +1,25 @@
+#!/bin/bash --login
+
+#PBS -N ZIF-7
+#PBS -l select=12:mpiprocs=24:bigmem=false
+#PBS -l walltime=4:00:00
+#PBS -A e05-gener-wal
+#PBS -q short
+
+#Note: select = No. Nodes (e.g. 12 = 12*24 = 288 cores)
+
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+module load vasp5
+module load module load python-compute/2.7.6 
+module load pc-ase
+
+export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
+
+cd $PBS_O_WORKDIR
+
+export VASP_COMMAND="aprun -n $NPROC vasp_std > vasp.out"
+export VASP_PP_PATH=/home/e05/e05/keeeto/PseudoPotentials
+
+python ase-optimise.py
+

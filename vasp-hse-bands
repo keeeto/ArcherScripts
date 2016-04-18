@@ -1,0 +1,29 @@
+#!/bin/bash --login
+
+#PBS -N SbSI-Pna21
+#PBS -l select=12
+#PBS -l walltime=8:00:00
+#PBS -A e05-gener-cat
+
+#Note: select = No. Nodes (e.g. 12 = 12*24 = 288 cores)
+
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+module load vasp5/5.3.3
+
+export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
+
+cd $PBS_O_WORKDIR
+
+cp INCAR.HSE06.Charge INCAR
+cp KPOINTS.Charge KPOINTS
+aprun -n $NPROC ${HOME}/bin/vasp.5.3.archer > vasp.out
+
+cp INCAR.HSE06.Bands INCAR
+awk '{if(NF ==4){print $0}}' IBZKPT > tmp
+awk '{if(NF ==4){print $0}}' KPOINTS.band >> tmp
+echo 'Script generated mesh' > KPOINTS
+echo `wc -l tmp | awk '{print $1}'` >> KPOINTS
+echo 'Reciprocal lattice' >> KPOINTS
+cat tmp >> KPOINTS 
+aprun -n $NPROC ${HOME}/bin/vasp.5.3.archer > vasp.out

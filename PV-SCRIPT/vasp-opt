@@ -1,0 +1,53 @@
+#!/bin/bash --login
+
+#PBS -N pna21-I
+#PBS -l select=8
+#PBS -l walltime=24:00:00
+#PBS -A e05-surfin-wal
+
+#Note: select = No. Nodes (e.g. 12 = 12*24 = 288 cores)
+
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+module load vasp5/5.3.3
+
+export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
+
+cd $PBS_O_WORKDIR
+
+	cp *POSCAR* POSCAR
+	finished_ions=`grep equired OUTCAR.Ions.Tight | awk '{print $1}'`
+	finished_latt=`grep equired OUTCAR.Ions.Tight | awk '{print $1}'`
+	finished_totl=`grep equired OUTCAR.Ions.Tight | awk '{print $1}'`       # reached if done
+
+	if [ "$finished_ions" == 'reached' ]
+    	then
+    	echo "Ions optimisation already done, skipping to lattice"
+	else
+    	cp INCAR.Ions INCAR
+    	cp KPOINTS.Orig KPOINTS
+    	aprun -n $NPROC ${HOME}/bin/vasp.5.3.archer > vasp.out
+    	cp OUTCAR OUTCAR.Ions
+    	cp CONTCAR CONTCAR.Ions
+	fi
+
+	if [ "$finished_latt" == 'reached' ]
+    	then
+    	echo "Lattice optimisation already done, skipping to lattice"
+	else
+    	cp INCAR.Lattice INCAR
+    	cp KPOINTS.Orig KPOINTS
+    	aprun -n $NPROC ${HOME}/bin/vasp.5.3.archer > vasp.out
+    	cp OUTCAR OUTCAR.Lattice
+    	cp CONTCAR CONTCAR.Lattice
+	fi
+	
+	if [ "$finished_totl" == 'reached' ]
+    	then
+    	echo "All optimisation done already!"
+	else
+    	cp INCAR.Ions.Tight INCAR
+    	aprun -n $NPROC ${HOME}/bin/vasp.5.3.archer > vasp.out
+    	cp OUTCAR OUTCAR.Ions.Tight
+    	cp CONTCAR CONTCAR.Ions.Tight
+	fi

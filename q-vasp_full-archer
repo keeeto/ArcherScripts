@@ -1,0 +1,31 @@
+#!/bin/bash --login
+#PBS -N CuBr-F
+#PBS -l select=12
+#PBS -l walltime=24:00:00
+#PBS -A e05-gener-wal
+
+
+#Note: select = number of nodes, there are 12 proc per node.
+
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+
+export NPROC=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3}'`
+export NPROC2=`qstat -f $PBS_JOBID | awk '/Resource_List.mpiprocs/ {print $3/2}'`
+
+cd $PBS_O_WORKDIR
+
+while [ "$finished_totl" != 'reached' ]; do
+    cp INCAR.Ions INCAR
+    aprun -n $NPROC -N 24 /home/e05/shared/red/vasp5 > vasp.out 
+    cp CONTCAR POSCAR
+    cp INCAR.Vol INCAR
+    aprun -n $NPROC -N 24 /home/e05/shared/red/vasp5 > vasp.out 
+    cp CONTCAR POSCAR
+    cp INCAR.3 INCAR
+    aprun -n $NPROC -N 24 /home/e05/shared/red/vasp5 > vasp.out 
+    cp CONTCAR POSCAR
+
+    finished_totl=`grep equired OUTCAR | awk '{print $1}'`
+
+    done

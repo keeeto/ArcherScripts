@@ -1,0 +1,52 @@
+#! /usr/bin/perl
+
+$numArgs = $#ARGV + 1 ;
+
+$criteria = 0.01 ;
+
+   if ($numArgs == 1) {
+      $criteria = $ARGV[0] ;
+           }
+$criteria2 = $criteria * $criteria  ;
+
+  print $criteria ;
+
+my @outcar = `cat OUTCAR`;
+
+print "\n";
+
+while (@outcar) {
+    my @thisline = split /\s+/,shift(@outcar);
+    if ($thisline[1] =~ /POSITION/){
+        shift(@outcar);
+        @thisline = split /\s+/,shift(@outcar);
+        $theseforces = "";
+        until ($thisline[1] =~ m/--/) {
+            for ($i=4; $i <= 6; $i++) {
+                if ($thisline[$i] > 0) {
+                    $theseforces = "$theseforces   $thisline[$i]";
+                } else {
+                    $theseforces = "$theseforces  $thisline[$i]";
+                }
+            }
+            for ($i=4; $i <= 6; $i++) {
+                if ($thisline[$i]**2 > $criteria2) {
+                    $theseforces = "$theseforces   ****";
+                } else {
+                    $theseforces = "$theseforces   conv";
+                }
+            }
+            $thisforce = sprintf "%f", sqrt($thisline[4]*$thisline[4] + $thisline[5]*$thisline[5] + $thisline[6]*$thisline[6]);
+            if ($thisforce > $criteria) {
+                $theseforces = "$theseforces   $thisforce   ****";
+            } else {
+                $theseforces = "$theseforces   $thisforce   conv";
+            }
+            $theseforces = "$theseforces\n";
+            @thisline = split /\s+/,shift(@outcar);
+        }
+    }
+}
+
+print "$theseforces\n";
+
